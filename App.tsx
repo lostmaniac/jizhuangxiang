@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Truck, Plus, Trash2, Box, Package, ChevronRight, Settings, Info } from 'lucide-react';
+import { Layout, Truck, Plus, Trash2, Box, Package, ChevronRight, Settings } from 'lucide-react';
 import { DEFAULT_CARGO, DEFAULT_CONTAINERS } from './constants';
 import { CargoItem, ContainerType, Solution, CargoType } from './types';
 import { generateSolutions } from './utils/packer';
@@ -91,10 +91,6 @@ const App = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
-             <div className="text-xs text-slate-500 hidden sm:flex items-center gap-1 bg-slate-50 px-2 py-1 rounded border border-slate-100">
-                 <Info className="w-3 h-3" />
-                 Gemini AI 2.5 决策支持
-             </div>
              <button 
                 onClick={handleCalculate}
                 disabled={isCalculating}

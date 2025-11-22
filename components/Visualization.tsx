@@ -60,7 +60,7 @@ export const Visualization: React.FC<Props> = ({ container }) => {
 
                 {/* 3. 后视图 (REAR VIEW) - Section */}
                 <BlueprintView 
-                    title="后视图 (REAR VIEW) - 车门截面" 
+                    title="后视图 (REAR VIEW) - 集装箱门截面" 
                     type="rear"
                     container={container}
                     widthDim={width}

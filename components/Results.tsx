@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Solution } from '../types';
 import { Visualization } from './Visualization';
-import { CheckCircle, AlertTriangle, Cpu, DollarSign, Package, BarChart3 } from 'lucide-react';
-import { analyzeSolution } from '../services/geminiService';
+import { CheckCircle, AlertTriangle, Package, BarChart3 } from 'lucide-react';
 
 interface Props {
   solutions: Solution[];
@@ -11,15 +10,11 @@ interface Props {
 export const Results: React.FC<Props> = ({ solutions }) => {
   const [selectedSolutionIdx, setSelectedSolutionIdx] = useState(0);
   const [activeContainerIdx, setActiveContainerIdx] = useState(0);
-  const [aiReport, setAiReport] = useState<string | null>(null);
-  const [loadingAi, setLoadingAi] = useState(false);
 
   // Reset state when new solutions are generated
   useEffect(() => {
     setSelectedSolutionIdx(0);
     setActiveContainerIdx(0);
-    setAiReport(null);
-    setLoadingAi(false);
   }, [solutions]);
 
   if (!solutions.length) return null;
@@ -29,13 +24,6 @@ export const Results: React.FC<Props> = ({ solutions }) => {
   // Ensure container index is valid for the new solution
   const safeContainerIdx = activeSolution.containers[activeContainerIdx] ? activeContainerIdx : 0;
   const activeContainer = activeSolution.containers[safeContainerIdx];
-
-  const handleAiAnalysis = async () => {
-    setLoadingAi(true);
-    const report = await analyzeSolution(solutions);
-    setAiReport(report);
-    setLoadingAi(false);
-  };
 
   return (
     <div className="flex flex-col h-full animate-in fade-in duration-500">
@@ -160,17 +148,6 @@ export const Results: React.FC<Props> = ({ solutions }) => {
                             ))}
                          </div>
                      </div>
-
-                     <div className="pt-4">
-                        <button 
-                            onClick={handleAiAnalysis}
-                            disabled={loadingAi}
-                            className="w-full py-2.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-xs font-bold shadow hover:shadow-md transition-all flex items-center justify-center gap-2"
-                        >
-                            {loadingAi ? <Cpu className="w-3.5 h-3.5 animate-spin" /> : <Cpu className="w-3.5 h-3.5" />}
-                            {aiReport ? '更新分析报告' : 'AI 专家决策'}
-                        </button>
-                     </div>
                  </div>
              ) : (
                  <div className="p-4 text-center text-slate-400 text-xs mt-10">
@@ -185,26 +162,6 @@ export const Results: React.FC<Props> = ({ solutions }) => {
                  <Visualization container={activeContainer} />
              ) : (
                  <div className="flex-1 flex items-center justify-center text-slate-400">请选择一个集装箱</div>
-             )}
-             
-             {/* AI Report Overlay Panel (if active) */}
-             {aiReport && (
-                 <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] max-h-[50%] flex flex-col transition-transform duration-300 animate-in slide-in-from-bottom z-30">
-                     <div className="flex justify-between items-center px-6 py-3 border-b border-slate-100 bg-slate-50">
-                        <div className="flex items-center gap-2">
-                            <Cpu className="w-4 h-4 text-indigo-600" />
-                            <h3 className="font-bold text-slate-800 text-sm">AI 决策报告</h3>
-                        </div>
-                        <button onClick={() => setAiReport(null)} className="text-slate-400 hover:text-slate-600 text-sm font-bold px-2">×</button>
-                     </div>
-                     <div className="p-6 overflow-y-auto prose prose-sm prose-indigo max-w-none">
-                        {aiReport.split('\n').map((line, i) => {
-                            if (line.trim().startsWith('###')) return <h3 key={i} className="text-sm font-bold text-slate-900 mt-3 mb-1">{line.replace(/#/g, '')}</h3>;
-                            if (line.trim().startsWith('*') || line.trim().startsWith('-')) return <li key={i} className="text-slate-600 ml-4 text-xs">{line.replace(/[*|-]/g, '')}</li>;
-                            return <p key={i} className="text-slate-600 mb-1 text-xs leading-relaxed">{line}</p>;
-                        })}
-                     </div>
-                 </div>
              )}
          </div>
 
