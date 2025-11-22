@@ -8,7 +8,7 @@ export const DEFAULT_CONTAINERS: ContainerType[] = [
     width: 235,
     height: 239,
     maxWeight: 28000,
-    cost: 8500, // RMB Example
+    cost: 3000, // 约 $420
     enabled: true,
   },
   {
@@ -18,7 +18,7 @@ export const DEFAULT_CONTAINERS: ContainerType[] = [
     width: 235,
     height: 239,
     maxWeight: 28000,
-    cost: 14000, // RMB Example
+    cost: 4500, // 约 $630
     enabled: true,
   },
   {
@@ -28,7 +28,7 @@ export const DEFAULT_CONTAINERS: ContainerType[] = [
     width: 235,
     height: 269,
     maxWeight: 28500,
-    cost: 16000, // RMB Example
+    cost: 5200, // 约 $730
     enabled: true,
   },
 ];
@@ -36,41 +36,54 @@ export const DEFAULT_CONTAINERS: ContainerType[] = [
 export const DEFAULT_CARGO: CargoItem[] = [
   {
     id: 'SKU-001',
-    name: '标准纸箱 A',
-    length: 60,
+    name: '标准纸箱 A (轻)',
+    length: 50,
     width: 40,
-    height: 40,
-    weight: 15,
-    quantity: 450,
+    height: 30,
+    weight: 10,
+    quantity: 80,
     canRotate: true,
     type: CargoType.CARTON,
-    priority: 'Low',
-    color: '#3b82f6',
+    priority: 'Low', // Inside
+    color: '#60a5fa', // Blue-400
   },
   {
     id: 'SKU-002',
-    name: '重型配件 B',
-    length: 80,
-    width: 60,
+    name: '重型底座 B (沉底)',
+    length: 100,
+    width: 100,
     height: 50,
-    weight: 45,
-    quantity: 50,
+    weight: 500, // Very Heavy - Should be at bottom
+    quantity: 4,
     canRotate: false,
     type: CargoType.CRATE,
-    priority: 'Medium',
-    color: '#ef4444',
+    priority: 'Low', // Inside
+    color: '#475569', // Slate-600 (Dark Grey)
   },
   {
     id: 'SKU-003',
-    name: '长管件 C',
-    length: 200,
-    width: 20,
-    height: 20,
-    weight: 10,
-    quantity: 100,
+    name: '长条配件 C',
+    length: 120,
+    width: 30,
+    height: 30,
+    weight: 15,
+    quantity: 30,
     canRotate: true,
-    type: CargoType.IRREGULAR,
-    priority: 'High',
-    color: '#10b981',
+    type: CargoType.CARTON,
+    priority: 'Medium', 
+    color: '#34d399', // Emerald-400
+  },
+    {
+    id: 'SKU-004',
+    name: '急件 D (门口)',
+    length: 40,
+    width: 40,
+    height: 40,
+    weight: 8,
+    quantity: 12,
+    canRotate: true,
+    type: CargoType.CARTON,
+    priority: 'High', // Door
+    color: '#f87171', // Red-400
   },
 ];

@@ -1,186 +1,197 @@
 import React, { useState } from 'react';
-import { PackedContainer } from '../types';
-import { Box, Rotate3d, Eye, Layers } from 'lucide-react';
+import { PackedContainer, PlacedItem } from '../types';
+import { Maximize2, ArrowRight, ArrowDown } from 'lucide-react';
 
 interface Props {
   container: PackedContainer;
 }
 
 export const Visualization: React.FC<Props> = ({ container }) => {
-  const [viewMode, setViewMode] = useState<'3d' | 'top' | 'side'>('3d');
-  const [rotation, setRotation] = useState(45);
-
   const { length, width, height, name } = container.containerType;
-  
-  // Scale factor to fit in view
-  const scale = 0.5;
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  const containerStyle = {
-    width: length * scale,
-    height: height * scale,
-    depth: width * scale,
-  };
+  // Calculate colors for legend
+  const itemColors = new Map<string, string>();
+  container.items.forEach(item => itemColors.set(item.cargoId, item.color));
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
-        <div className="flex items-center gap-3">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-            <Box className="w-5 h-5 text-indigo-600" />
-            {name} 3D 装载图
-            </h3>
-            <span className="text-xs text-slate-400 px-2 border-l border-slate-300">
-                {length} x {width} x {height} cm
-            </span>
-        </div>
-        <div className="flex gap-1 bg-white p-1 rounded-lg shadow-sm border border-slate-200">
-          <button
-            onClick={() => setViewMode('3d')}
-            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors flex items-center gap-1 ${
-              viewMode === '3d' ? 'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            <Rotate3d className="w-3 h-3" /> 3D 透视
-          </button>
-          <button
-             onClick={() => setViewMode('top')}
-             className={`px-3 py-1 text-xs font-medium rounded-md transition-colors flex items-center gap-1 ${
-               viewMode === 'top' ? 'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200' : 'text-slate-500 hover:text-slate-700'
-             }`}
-          >
-            <Layers className="w-3 h-3" /> 俯视
-          </button>
-          <button
-             onClick={() => setViewMode('side')}
-             className={`px-3 py-1 text-xs font-medium rounded-md transition-colors flex items-center gap-1 ${
-               viewMode === 'side' ? 'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200' : 'text-slate-500 hover:text-slate-700'
-             }`}
-          >
-            <Eye className="w-3 h-3" /> 侧视
-          </button>
-        </div>
+    <div className="h-full flex flex-col bg-white overflow-hidden relative">
+      {/* Toolbar / Header */}
+      <div className="px-4 py-2 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
+         <h3 className="font-bold text-slate-700 flex items-center gap-2">
+           <Maximize2 className="w-4 h-4 text-indigo-500" />
+           {name} 装载蓝图
+         </h3>
+         <div className="flex gap-3 text-[10px] text-slate-500">
+            <div className="flex items-center gap-1">
+               <div className="w-2 h-2 bg-slate-300 rounded-full"></div> 未选中
+            </div>
+            <div className="flex items-center gap-1">
+               <div className="w-2 h-2 bg-indigo-500 rounded-full shadow-[0_0_4px_rgba(99,102,241,0.6)]"></div> 悬停高亮
+            </div>
+         </div>
       </div>
 
-      <div className="flex-1 min-h-[400px] flex items-center justify-center bg-gradient-to-b from-slate-50 to-white rounded-xl border border-slate-200 overflow-hidden relative shadow-inner">
-        {/* Controls for 3D */}
-        {viewMode === '3d' && (
-          <div className="absolute bottom-4 right-4 z-10 flex gap-2">
-            <button 
-              onClick={() => setRotation(r => r - 15)}
-              className="p-2 bg-white rounded-full shadow text-slate-600 hover:text-indigo-600 transition-colors"
-              title="向左旋转"
-            >
-              <Rotate3d className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={() => setRotation(r => r + 15)}
-              className="p-2 bg-white rounded-full shadow text-slate-600 hover:text-indigo-600 transition-colors"
-              title="向右旋转"
-            >
-              <Rotate3d className="w-5 h-5 -scale-x-100" />
-            </button>
-          </div>
-        )}
-
-        {/* The Scene */}
-        <div 
-          className="perspective-1000 relative transition-all duration-500"
-          style={{ 
-            width: containerStyle.width, 
-            height: containerStyle.height 
-          }}
-        >
-          {/* The Container Box */}
-          <div
-            className="transform-style-3d relative transition-transform duration-500 ease-out"
-            style={{
-              width: '100%',
-              height: '100%',
-              transform: viewMode === '3d' 
-                ? `rotateX(-20deg) rotateY(${rotation}deg)` 
-                : viewMode === 'top' 
-                  ? 'rotateX(90deg)' 
-                  : 'rotateY(0deg)', 
-            }}
-          >
-            {/* Walls */}
-            <div className="absolute inset-0 border-2 border-slate-400/50 bg-slate-100/10 pointer-events-none box-border backdrop-blur-[1px]" style={{ transform: `translateZ(${containerStyle.depth / 2}px)` }}></div>
-            <div className="absolute inset-0 border-2 border-slate-400/50 bg-slate-100/10 pointer-events-none box-border backdrop-blur-[1px]" style={{ transform: `translateZ(-${containerStyle.depth / 2}px)` }}></div>
+      <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-100">
+        <div className="flex flex-col gap-8 max-w-5xl mx-auto">
             
-            {/* Floor */}
-            <div 
-                className="absolute bg-slate-200/50 border border-slate-300 grid-pattern" 
-                style={{ 
-                    width: containerStyle.width, 
-                    height: containerStyle.depth, 
-                    transform: `rotateX(90deg) translateZ(-${containerStyle.height / 2}px)`,
-                    transformOrigin: 'bottom'
-                }} 
+            {/* 1. 俯视图 (TOP VIEW) - Floor Plan */}
+            <BlueprintView 
+               title="俯视图 (TOP VIEW) - 地板排布" 
+               type="top"
+               container={container}
+               widthDim={length}
+               heightDim={width}
+               hoveredItem={hoveredItem}
+               setHoveredItem={setHoveredItem}
             />
 
-            {/* Items */}
-            {container.items.map((item, idx) => {
-               const w = item.length * scale;
-               const h = item.height * scale;
-               const d = item.width * scale;
-               
-               const x = (item.x * scale);
-               const y = (item.y * scale);
-               const z = (item.z * scale); 
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* 2. 侧视图 (SIDE VIEW) - Stacking */}
+                <BlueprintView 
+                    title="侧视图 (SIDE VIEW) - 堆叠高度" 
+                    type="side"
+                    container={container}
+                    widthDim={length}
+                    heightDim={height}
+                    hoveredItem={hoveredItem}
+                    setHoveredItem={setHoveredItem}
+                />
 
-               return (
-                 <div
-                    key={idx}
-                    className="absolute border border-black/20 hover:border-white transition-all cursor-pointer group shadow-sm"
-                    style={{
-                        width: w,
-                        height: h,
-                        backgroundColor: item.color,
-                        opacity: 0.95,
-                        left: 0,
-                        bottom: 0,
-                        transformOrigin: 'bottom left',
-                        transform: `
-                           translateX(${x}px) 
-                           translateY(${-y}px)
-                           translateZ(${z - (containerStyle.depth/2)}px) 
-                        `,
-                    }}
-                 >
-                    {/* Tooltip */}
-                    <div className="hidden group-hover:block absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-3 py-2 rounded shadow-xl z-50 whitespace-nowrap pointer-events-none">
-                        <div className="font-bold mb-0.5">{item.cargoId}</div>
-                        <div>{item.length}x{item.width}x{item.height}cm</div>
-                    </div>
-
-                    {/* Side Face (Right) */}
-                    <div 
-                        className="absolute top-0 right-0 h-full bg-black/10"
-                        style={{ width: d, transform: `rotateY(90deg) translateZ(${d/2}px)`, transformOrigin: 'right' }}
-                    />
-                    {/* Top Face */}
-                    <div 
-                        className="absolute top-0 left-0 w-full bg-white/20"
-                        style={{ height: d, transform: `rotateX(90deg) translateZ(${d/2}px)`, transformOrigin: 'top' }}
-                    />
-                 </div>
-               );
-            })}
-          </div>
+                {/* 3. 后视图 (REAR VIEW) - Section */}
+                <BlueprintView 
+                    title="后视图 (REAR VIEW) - 车门截面" 
+                    type="rear"
+                    container={container}
+                    widthDim={width}
+                    heightDim={height}
+                    hoveredItem={hoveredItem}
+                    setHoveredItem={setHoveredItem}
+                />
+            </div>
         </div>
       </div>
-      
-      <div className="grid grid-cols-3 gap-4 text-xs text-slate-500 mt-3">
-         <div className="text-center bg-slate-50 p-2 rounded border border-slate-100">
-            长: {length} cm
-         </div>
-         <div className="text-center bg-slate-50 p-2 rounded border border-slate-100">
-            高: {height} cm
-         </div>
-         <div className="text-center bg-slate-50 p-2 rounded border border-slate-100">
-            宽: {width} cm
-         </div>
-      </div>
+
+      {/* Floating Tooltip */}
+      {hoveredItem && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white px-4 py-2 rounded-full text-xs font-medium shadow-xl pointer-events-none backdrop-blur-sm z-50 border border-white/10">
+              选中货物 ID: <span className="text-yellow-400 font-bold ml-1">{hoveredItem}</span>
+          </div>
+      )}
     </div>
   );
 };
+
+interface ViewProps {
+    title: string;
+    type: 'top' | 'side' | 'rear';
+    container: PackedContainer;
+    widthDim: number;
+    heightDim: number;
+    hoveredItem: string | null;
+    setHoveredItem: (id: string | null) => void;
+}
+
+const BlueprintView: React.FC<ViewProps> = ({ title, type, container, widthDim, heightDim, hoveredItem, setHoveredItem }) => {
+    // Calculate Aspect Ratio for container display
+    // We fix width to 100% and calculate height
+    const aspectRatio = heightDim / widthDim;
+    const pctHeight = `${aspectRatio * 100}%`;
+
+    return (
+        <div className="bg-white p-1 rounded-xl shadow-sm border border-slate-200">
+            <div className="px-3 py-2 border-b border-slate-100 flex justify-between items-center mb-2">
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{title}</span>
+                <span className="text-[10px] text-slate-400 font-mono">{widthDim}cm x {heightDim}cm</span>
+            </div>
+            
+            <div className="relative w-full bg-slate-50 overflow-hidden rounded border border-slate-200" style={{ paddingBottom: pctHeight }}>
+                <div className="absolute inset-0">
+                    {/* Grid Lines */}
+                    <div className="absolute inset-0 opacity-[0.05]" 
+                         style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+                    </div>
+
+                    {/* Axis Labels */}
+                    <div className="absolute bottom-1 left-2 text-[9px] text-slate-400 font-mono z-10">0,0</div>
+                    {type === 'top' && (
+                         <>
+                            <div className="absolute top-1/2 -right-6 rotate-90 text-[9px] text-slate-400 font-bold flex items-center gap-1 origin-center w-20 justify-center"><ArrowRight className="w-3 h-3" /> 宽 (W)</div>
+                            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] text-slate-400 font-bold flex items-center gap-1"><ArrowRight className="w-3 h-3" /> 长 (L)</div>
+                            <div className="absolute right-2 top-1 text-[9px] text-slate-400 font-bold">车门</div>
+                            <div className="absolute left-2 top-1 text-[9px] text-slate-400 font-bold">车头</div>
+                         </>
+                    )}
+                    {type === 'side' && (
+                         <>
+                            <div className="absolute top-1/2 -left-6 -rotate-90 text-[9px] text-slate-400 font-bold flex items-center gap-1 origin-center w-20 justify-center"><ArrowRight className="w-3 h-3" /> 高 (H)</div>
+                            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] text-slate-400 font-bold flex items-center gap-1"><ArrowRight className="w-3 h-3" /> 长 (L)</div>
+                            <div className="absolute right-2 bottom-1 text-[9px] text-slate-400 font-bold">车门</div>
+                            <div className="absolute left-2 bottom-1 text-[9px] text-slate-400 font-bold">车头</div>
+                         </>
+                    )}
+
+                    {/* Items */}
+                    {container.items.map((item, idx) => {
+                        const isHovered = hoveredItem === item.cargoId;
+                        
+                        // Calculate Position %
+                        let left = 0, top = 0, w = 0, h = 0;
+                        
+                        if (type === 'top') {
+                            // X (Length) -> Left, Z (Width) -> Top
+                            // Z is width in packer terms. Top of chart is Z=0 (Right Wall) or Z=Width (Left Wall)?
+                            // Let's assume Z=0 is top.
+                            left = (item.x / widthDim) * 100;
+                            top = (item.z / heightDim) * 100;
+                            w = (item.length / widthDim) * 100;
+                            h = (item.width / heightDim) * 100;
+                        } else if (type === 'side') {
+                            // X (Length) -> Left, Y (Height) -> Bottom
+                            // HTML coords: Top is Y=0. We need to invert Y.
+                            left = (item.x / widthDim) * 100;
+                            // item.y is from bottom. 
+                            // CSS top = 100% - (y + height) / H * 100
+                            const yTop = item.y + item.height;
+                            top = 100 - (yTop / heightDim) * 100;
+                            w = (item.length / widthDim) * 100;
+                            h = (item.height / heightDim) * 100;
+                        } else if (type === 'rear') {
+                             // Z (Width) -> Left, Y (Height) -> Bottom
+                             left = (item.z / widthDim) * 100;
+                             const yTop = item.y + item.height;
+                             top = 100 - (yTop / heightDim) * 100;
+                             w = (item.width / widthDim) * 100;
+                             h = (item.height / heightDim) * 100;
+                        }
+
+                        return (
+                            <div
+                                key={`${item.cargoId}-${idx}`}
+                                onMouseEnter={() => setHoveredItem(item.cargoId)}
+                                onMouseLeave={() => setHoveredItem(null)}
+                                className="absolute transition-all duration-200 border border-slate-900/20 flex items-center justify-center overflow-hidden group hover:z-20"
+                                style={{
+                                    left: `${left}%`,
+                                    top: `${top}%`,
+                                    width: `${w}%`,
+                                    height: `${h}%`,
+                                    backgroundColor: item.color,
+                                    opacity: hoveredItem ? (isHovered ? 1 : 0.2) : 0.9,
+                                    boxShadow: isHovered ? '0 0 0 2px #fff, 0 0 0 4px #6366f1' : 'none',
+                                    zIndex: isHovered ? 10 : 1
+                                }}
+                            >
+                                {w > 5 && h > 10 && (
+                                    <span className="text-[8px] font-bold text-slate-900/70 truncate px-0.5 select-none group-hover:text-black">
+                                        {item.cargoId}
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+}
